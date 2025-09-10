@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Cámara Widget</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+    video {
+      width: 100%;
+      height: auto;
+    }
+    canvas {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <video id="video" autoplay playsinline></video>
+  <canvas id="canvas"></canvas>
+
+  <script>
+    let stream;
+
+    // 🔹 Activar la cámara
+    async function iniciarCamara() {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        document.getElementById('video').srcObject = stream;
+      } catch (err) {
+        console.error("❌ Error al acceder a la cámara:", err);
+        alert("No se pudo acceder a la cámara. Verifica permisos.");
+      }
+    }
+
+    // 🔹 Tomar foto
+    function capturarFoto() {
+      const video = document.getElementById('video');
+      const canvas = document.getElementById('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0);
+      const fotoBase64 = canvas.toDataURL("image/png");
+      // Enviar la foto al padre (Wix)
+      window.parent.postMessage({ type: "fotoCapturada", data: fotoBase64 }, "*");
+    }
+
+    // 🔹 Escuchar mensajes desde Wix
+    window.addEventListener("message", (event) => {
+      if (event.data.type === "activarCamara") {
+        iniciarCamara();
+      } else if (event.data.type === "tomarFoto") {
+        capturarFoto();
+      }
+    });
+  </script>
+
+</body>
+</html>
