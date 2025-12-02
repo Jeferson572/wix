@@ -1,1 +1,72 @@
 
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cámara - Tomar Foto</title>
+    <style>
+        #view { width: 100%; border-radius: 8px; background: #000; }
+        #btn { 
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            font-size: 16px;
+            background: #1a8cff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+    <video id="view" autoplay playsinline style="display:none;"></video>
+    <button id="btn" onclick="startCamera()">📸 Activar Cámara</button>
+
+    <canvas id="canvas" style="display:none;"></canvas>
+
+    <script>
+        let stream;  // Variable para almacenar el stream de la cámara
+
+        // Función que activa la cámara cuando el usuario hace clic en "Activar Cámara"
+        function startCamera() {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(s => {
+                    stream = s;  // Guardamos el stream de la cámara
+                    const videoElement = document.getElementById("view");
+                    videoElement.srcObject = stream;
+                    videoElement.style.display = "block"; // Mostramos el video
+                    document.getElementById("btn").innerText = "📸 Tomar Foto"; // Cambiar el texto del botón
+                    document.getElementById("btn").onclick = capture;  // Cambiar el evento para tomar la foto
+                })
+                .catch(err => {
+                    alert("Error al acceder a la cámara: " + err.message);
+                });
+        }
+
+        // Función para capturar la foto
+        function capture() {
+            const video = document.getElementById("view");
+            const canvas = document.getElementById("canvas");
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(video, 0, 0);
+
+            const foto = canvas.toDataURL("image/jpeg");
+
+            // Enviar la foto al sitio Wix (si es necesario) o almacenar el Base64
+            console.log("Foto tomada", foto);
+
+            // Detener la cámara después de tomar la foto
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+
+            // Ocultar el video y el botón
+            document.getElementById("view").style.display = "none";
+            document.getElementById("btn").style.display = "none";
+        }
+    </script>
+</body>
+</html>
